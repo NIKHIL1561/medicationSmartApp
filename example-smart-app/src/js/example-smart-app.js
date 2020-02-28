@@ -23,11 +23,15 @@
                   });
 				  
 		var medicationlist;
+		/*https://github.com/smart-on-fhir/client-js/blob/042a60760a921f00ec9a6db5fca6a7ec863d26bb/docs/request.html#L208* -- medicationAPI*/
 		smart.patient.api.fetchAllWithReferences(
                 { type: "MedicationOrder" },
                 [ "MedicationOrder.medicationReference" ]
             ).then(function(results, refs) {
-                if (results.length) {
+                if (results.length)
+				{
+					medicationlist=results;
+				}					/*{
                     results.forEach(function(prescription) {
                         if (prescription.medicationCodeableConcept) {
                            medicationlist = medicationlist.concat(getMedicationName(prescription.medicationCodeableConcept.coding), ", ");
@@ -36,7 +40,7 @@
                             medicationlist = medicationlist.concat(getMedicationName(med && med.code.coding || []), ", ");
                        }
                     });
-                }
+                }*/
                 else {
                     medicationlist = "No medications found for the selected patient";
                 }
