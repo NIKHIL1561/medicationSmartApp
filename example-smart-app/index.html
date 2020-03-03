@@ -1,65 +1,98 @@
 <!DOCTYPE html>
-<html>
- <head>
-    <script src="node_modules/fhirclient/fhir-client.js"></script>
- </head>
- <body>
-    <h1>Medications for <span id="name">Loading...</span></h1>
-    <ul id="med_list">Loading...</ul>
-    <script type="text/javascript">
-        var med_list = document.getElementById('med_list');
+<html lang="en">
+  <head>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge' />
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+    <title>NIKHIL 1561 Example-SMART-App</title>
 
-        function getPatientName(pt) {
-            if (pt.name) {
-                var names = pt.name.map(function(name) {
-                    return name.given.join(" ") + " " + name.family.join(" ");
-                });
-                return names.join(" / ");
-            } else {
-                return "anonymous";
-            }
+    <link rel='stylesheet' type='text/css' href='./src/css/example-smart-app.css'>
+    <!--
+      Temporarily disable cerner-smart-embeddable-lib
+      <link rel='stylesheet' type='text/css' href='./lib/css/cerner-smart-embeddable-lib-1.0.0.min.css'>
+    -->
+	<style>
+table, th, td {
+  
+  border-collapse: collapse;
+  text-align: center;
+}
+</style>
+	<style>
+table#t01 {
+    empty-cells:show;
+}
+
+</style>
+
+  </head>
+  <body>
+    <div id='errors'>
+    </div>
+    <div id="loading" class="spinner">
+      <div class="bounce1"></div>
+      <div class="bounce2"></div>
+      <div class="bounce3"></div>
+    </div>
+    <div id='holder' >
+      <h2 align="center">Blood Pressure Chart  - SMART APP</h2>
+
+      <table style="width:100%; border: 2px solid black">
+        <tr bgcolor="#2b57b5">
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Gender</th>
+          <th>Date of Birth</th>
+        </tr>
+        <tr>
+          <td id='fname'>tomas</td>
+          <td id='lname'></td>
+          <td id='gender'></td>
+          <td id='birthdate'></td>
+        </tr>
+      </table>
+	  
+     	 <h2>Medication details</h2>
+      <table>
+        <tr>
+          <th>Medication name:</th>
+          <td id='medname'></td>
+        </tr>
+        <tr>
+          <th>Dosage:</th>
+          <td id='dosage'></td>
+        </tr>
+      </table>
+	 </div>
+    <!-- Required JS files to enable this page to embed within an MPage -->
+    <!--
+      Temporarily disable cerner-smart-embeddable-lib
+      <script src='https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.26.0/polyfill.min.js'></script>
+      <script src='./lib/js/cerner-smart-embeddable-lib-1.0.0.min.js'></script>
+    -->
+
+    <!-- Application-level javascript-->
+    <script src='./src/js/example-smart-app.js'></script>
+
+    <!-- FHIR Client JS Library -->
+    <script src='./lib/js/fhir-client-v0.1.12.js'></script>
+
+    <!-- Prevent session bleed caused by single threaded embedded browser and sessionStorage API -->
+    <!-- https://github.com/cerner/fhir-client-cerner-additions -->
+    <script src='./lib/js/fhir-client-cerner-additions-1.0.0.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>
+      extractData().then(
+        //Display Patient Demographics and Observations if extractData was success
+        function(p) {
+          drawVisualization(p);
+        },
+
+        //Display 'Failed to call FHIR Service' if extractData failed
+        function() {
+          $('#loading').hide();
+          $('#errors').html('<p> Failed to call FHIR Service </p>');
         }
-
-        function getMedicationName(medCodings) {
-            var coding = medCodings.find(function(c) {
-                return c.system == "http://www.nlm.nih.gov/research/umls/rxnorm";
-            });
-            return coding && coding.display || "Unnamed Medication(TM)";
-        }
-
-        function displayPatient (pt) {
-            document.getElementById('name').innerHTML = getPatientName(pt);
-        }
-
-        function displayMedication (medCodings) {
-            med_list.innerHTML += "<li> " + getMedicationName(medCodings) + "</li>";
-        }
-
-        FHIR.oauth2.ready(function(smart) {
-            smart.patient.read().then(function(pt) {
-                displayPatient (pt);
-            });
-            smart.patient.api.fetchAllWithReferences(
-                { type: "MedicationOrder" },
-                [ "MedicationOrder.medicationReference" ]
-            ).then(function(results, refs) {
-                if (results.length) {
-                    med_list.innerHTML = "";
-                    results.forEach(function(prescription) {
-                        if (prescription.medicationCodeableConcept) {
-                            displayMedication(prescription.medicationCodeableConcept.coding);
-                        } else if (prescription.medicationReference) {
-                            var med = refs(prescription, prescription.medicationReference);
-                            displayMedication(med && med.code.coding || []);
-                        }
-                    });
-                }
-                else {
-                    med_list.innerHTML = "No medications found for the selected patient";
-                }
-            });
-        });
-
+      );
     </script>
- </body>
+  </body>
 </html>
